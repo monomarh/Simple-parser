@@ -39,13 +39,14 @@ class MainController extends AbstractController
 //            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
 //            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
 //            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-//            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
+            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
         ];
 
         foreach ($urls as $url => $productCounter) {
             $parser = new HtmlParser((string)$productCounter);
             $parser->parseHtml($url, (int)($productCounter / HtmlParser::PRODUCTS_PER_PAGE) + 1);
-            $parser->saveInFile();
+            $parser->saveProducts();
+            $parser->saveProductsInDatabase($this->getDoctrine()->getManager());
         }
 
         return new Response(

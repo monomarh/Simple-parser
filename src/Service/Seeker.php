@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Service;
 
+use App\Entity\Product;
 use DiDom\Document;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -33,12 +35,18 @@ class Seeker
     /**
      * @var string
      */
-    private $siteForSearchingCompostion = 'http://www.cosdna.com/eng/product.php';
+    private $siteForSearchingComposition = 'http://www.cosdna.com/eng/product.php';
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
 
     /**
      * @param KernelInterface $kernel
+     * @param EntityManagerInterface $entityManager
      */
-    public function __construct(KernelInterface $kernel)
+    public function __construct(KernelInterface $kernel, EntityManagerInterface $entityManager)
     {
         $application = new Application($kernel);
         $application->setAutoExit(false);
@@ -51,6 +59,7 @@ class Seeker
         $application->run($input, $output);
 
         $this->file = new \SplFileObject(dirname(__DIR__) . '/../files/all.csv');
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -59,19 +68,26 @@ class Seeker
     public function startSearching(): array
     {
         $i = 0;
-        foreach ($this->file as $product) {
-            if ($this->file->eof()) { return []; }
+        $products = $this->entityManager->getRepository(Product::class)->findAll();
+        foreach ($products as $product) {
             $searchStatus = false;
-            $requestLength = 1;
+            $requestLength = 0;
 
-            while (!$searchStatus || $requestLength) {
-                $html = $this->getDomFromUrl('?q=MATIS+Repairing+eye+cream');
+            if (preg_match_all('/\b(\w+)/', $product->getTitle(), $matches)) {
+                $requestLength = count($matches[0]);
+                $wordsForGetRequest = $matches[0];
+            }
+
+            while (!$searchStatus && ($requestLength > 1)) {
+                $html = $this->getDomFromUrl(
+                    sprintf('?q=%s+%s', $product->getBrand(), implode('+', $wordsForGetRequest))
+                );
 
                 $nodeElements = $html->find('.ProdName');
                 if (count($nodeElements) > 0) {
-                    $pageWithProductCompostition = $nodeElements[0]->first('a')->getAttribute('href');
+                    $pageWithProductComposition = $nodeElements[0]->first('a')->getAttribute('href');
 
-                    $html = $this->getDomFromUrl('/' . $pageWithProductCompostition);
+                    $html = $this->getDomFromUrl('/' . $pageWithProductComposition);
 
                     $compositionElements = $html->find('tr[valign=top]');
                     dump($compositionElements);
@@ -81,6 +97,7 @@ class Seeker
                         foreach ($compositionElements as $compositionElement) {
                             $productComposition[] = $compositionElement->first('td')->text();
                             dump($productComposition);
+                              $searchStatus = true;
                         }
                         die;
 
@@ -88,6 +105,9 @@ class Seeker
                     } else {
                         throw new \Exception('Something get wrong');
                     }
+                } else {
+                    $requestLength--;
+                    unset($wordsForGetRequest[$requestLength]);
                 }
             }
 
@@ -102,7 +122,7 @@ class Seeker
      */
     public function getDomFromUrl(string $getOptions)
     {
-        $url = $this->siteForSearchingCompostion . $getOptions;
+        $url = $this->siteForSearchingComposition . $getOptions;
 
         $load = Parser::getPage([
             'url' 	  => $url,

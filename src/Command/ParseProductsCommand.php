@@ -6,6 +6,7 @@ namespace App\Command;
 
 use Cowsayphp\Cow;
 use App\Service\HtmlParser;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,6 +26,21 @@ class ParseProductsCommand extends Command
      * @var SymfonyStyle
      */
     private $io;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     */
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        parent::__construct($name = null);
+
+        $this->entityManager = $entityManager;
+    }
 
     /**
      * {@inheritDoc}
@@ -64,7 +80,8 @@ class ParseProductsCommand extends Command
 
             $result[] = $parser->parseHtml($url, (int)($productCount / HtmlParser::PRODUCTS_PER_PAGE) + 1);
 
-            $parser->saveInFile();
+            $parser->saveProducts();
+            $parser->saveProductsInDatabase($this->entityManager);
         }
 
         if (!empty($result)) {

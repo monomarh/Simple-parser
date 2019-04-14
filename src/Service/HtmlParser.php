@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Service;
 
+use App\Entity\Product;
 use DiDom\Document;
+use Doctrine\ORM\EntityManagerInterface;
 use JonnyW\PhantomJs\Client;
 
 /**
@@ -103,11 +105,26 @@ class HtmlParser
     /**
      * @return void
      */
-    public function saveInFile(): void
+    public function saveProducts(): void
     {
         foreach($this->productsForSaving as $product) {
             $this->file->fputcsv($product);
         }
+    }
+
+    /**
+     * @return void
+     */
+    public function saveProductsInDatabase(EntityManagerInterface $entityManager): void
+    {
+        foreach($this->productsForSaving as $product) {
+            $newProduct = new Product();
+            $newProduct->setBrand($product[Seeker::PRODUCT_BRAND]);
+            $newProduct->setTitle($product[Seeker::PRODUCT_TITLE]);
+            $entityManager->persist($newProduct);
+        }
+
+        $entityManager->flush();
     }
 
     /**
