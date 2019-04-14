@@ -9,7 +9,6 @@
 /public/bundles/
 /var/
 /vendor/
-/database
 ###< symfony/framework-bundle ###
 
 ###> apache-files ###
