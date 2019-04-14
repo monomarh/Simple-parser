@@ -58,11 +58,11 @@ class ParseProductsCommand extends Command
         ];
         $result = [];
 
-        foreach ($urls as $url => $pagination) {
+        foreach ($urls as $url => $productCount) {
             /** @var HtmlParser $parser */
-            $parser = new HtmlParser((string)$pagination);
+            $parser = new HtmlParser((string)$productCount);
 
-            $result[] = $parser->parseHtml($url, (int)($pagination / 24) + 1);
+            $result[] = $parser->parseHtml($url, (int)($productCount / HtmlParser::PRODUCTS_PER_PAGE) + 1);
 
             $parser->saveInFile();
         }

@@ -18,6 +18,11 @@ class HtmlParser
     private $selectors = ['.product__brand', '.product__name'];
 
     /**
+     * @var int
+     */
+    const PRODUCTS_PER_PAGE = 24;
+
+    /**
      * @var \SplFileObject
      */
     private $file;
@@ -26,6 +31,11 @@ class HtmlParser
      * @var array
      */
     private $productsForSaving = [];
+
+    /**
+     * @var string
+     */
+    private $paginationOptions = '&offset=%d&limit=24';
 
     /**
      * @param string $fileName
@@ -62,14 +72,14 @@ class HtmlParser
      *
      * @return array
      */
-    public function parseHtml(string $url, int $pagination): array
+    public function parseHtml(string $url, int $pagination = 0): array
     {
-        for ($i = 0; $i < $pagination; $i++) {
+        for ($pageNumber = 0; $pageNumber < $pagination; $pageNumber++) {
             $requiredFieldsFromHtml = [];
 
             $html = new Document(
                 $this->sendRequestAndReturnResponse(
-                    $url, sprintf('&offset=%d&limit=24', $i * 24)
+                    $url, sprintf($this->paginationOptions, $pageNumber * self::PRODUCTS_PER_PAGE)
                 )
             );
 
@@ -79,9 +89,10 @@ class HtmlParser
 
             foreach ($requiredFieldsFromHtml  as $productsSameFields) {
                 foreach ($productsSameFields as $key => $productField) {
+                    /** Skipping products that were hiding in the navbar */
                     if (preg_match('/^[0-5]{1}$/', (string)$key)) { continue; }
 
-                    $this->productsForSaving[$key + $i * 24][] = $productField->text();
+                    $this->productsForSaving[$key + $pageNumber * self::PRODUCTS_PER_PAGE][] = $productField->text();
                 }
             }
 

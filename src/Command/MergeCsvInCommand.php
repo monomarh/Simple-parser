@@ -73,11 +73,16 @@ class MergeCsvInCommand extends Command
         $fp = fopen(dirname(__DIR__) . '/../files/all.csv', 'wb');
 
         foreach ($arrayFromCsv as $fields) {
+            dump($fields);
+            if ($fields[0] ===  null) { continue; }
             foreach ($fields as $propertyKey => $field) {
                 $fields[$propertyKey] = str_replace(PHP_EOL, '', $field);
             }
             fputcsv($fp, $fields);
         }
+
+        $stat = fstat($fp);
+        ftruncate($fp, $stat['size'] - 1);
 
         fclose($fp);
 
