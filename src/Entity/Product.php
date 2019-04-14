@@ -37,6 +37,13 @@ class Product
     private $title;
 
     /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $composition;
+
+    /**
      * @return int|null
      */
     public function getId(): ?int
@@ -74,5 +81,21 @@ class Product
     public function setTitle(string $title): void
     {
         $this->title = $title;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getComposition(): ?array
+    {
+        return $this->composition;
+    }
+
+    /**
+     * @param $composition
+     */
+    public function setComposition(array $composition): void
+    {
+        $this->composition = $composition;
     }
 }

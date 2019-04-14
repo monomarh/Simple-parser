@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace App\Service;
 
-use App\Entity\Product;
 use DiDom\Document;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Product;
 use JonnyW\PhantomJs\Client;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * @package App\Service
@@ -97,9 +97,8 @@ class HtmlParser
                     $this->productsForSaving[$key + $pageNumber * self::PRODUCTS_PER_PAGE][] = $productField->text();
                 }
             }
-
-            return $this->productsForSaving;
         }
+        return $this->productsForSaving;
     }
 
     /**
@@ -113,6 +112,8 @@ class HtmlParser
     }
 
     /**
+     * @param EntityManagerInterface $entityManager
+     *
      * @return void
      */
     public function saveProductsInDatabase(EntityManagerInterface $entityManager): void
@@ -120,7 +121,7 @@ class HtmlParser
         foreach($this->productsForSaving as $product) {
             $newProduct = new Product();
             $newProduct->setBrand($product[Seeker::PRODUCT_BRAND]);
-            $newProduct->setTitle($product[Seeker::PRODUCT_TITLE]);
+            $newProduct->setTitle(str_replace(PHP_EOL, '', $product[Seeker::PRODUCT_TITLE]));
             $entityManager->persist($newProduct);
         }
 

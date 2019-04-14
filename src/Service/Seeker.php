@@ -67,8 +67,8 @@ class Seeker
      */
     public function startSearching(): array
     {
-        $i = 0;
         $products = $this->entityManager->getRepository(Product::class)->findAll();
+
         foreach ($products as $product) {
             $searchStatus = false;
             $requestLength = 0;
@@ -90,28 +90,21 @@ class Seeker
                     $html = $this->getDomFromUrl('/' . $pageWithProductComposition);
 
                     $compositionElements = $html->find('tr[valign=top]');
-                    dump($compositionElements);
+                    $productComposition = [];
 
-                    if (count($compositionElements) > 0) {
-                        $productComposition = [];
-                        foreach ($compositionElements as $compositionElement) {
-                            $productComposition[] = $compositionElement->first('td')->text();
-                            dump($productComposition);
-                              $searchStatus = true;
-                        }
-                        die;
-
-                        dump($productComposition);
-                    } else {
-                        throw new \Exception('Something get wrong');
+                    foreach ($compositionElements as $compositionElement) {
+                        $productComposition[] = $compositionElement->first('td')->text();
                     }
+
+                    $product->setComposition($productComposition);
+                    $this->entityManager->persist($product);
+
+                    $searchStatus = true;
                 } else {
                     $requestLength--;
                     unset($wordsForGetRequest[$requestLength]);
                 }
             }
-
-            return [];
         }
     }
 
@@ -123,6 +116,8 @@ class Seeker
     public function getDomFromUrl(string $getOptions)
     {
         $url = $this->siteForSearchingComposition . $getOptions;
+
+        sleep(random_int(2, 9));
 
         $load = Parser::getPage([
             'url' 	  => $url,
