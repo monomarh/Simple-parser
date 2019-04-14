@@ -40,15 +40,15 @@ class Seeker
      */
     public function __construct(KernelInterface $kernel)
     {
-//        $application = new Application($kernel);
-//        $application->setAutoExit(false);
-//
-//        $input = new ArrayInput([
-//            'command' => 'app:merge_all_csv',
-//        ]);
-//
-//        $output = new BufferedOutput();
-//        $application->run($input, $output);
+        $application = new Application($kernel);
+        $application->setAutoExit(false);
+
+        $input = new ArrayInput([
+            'command' => 'app:merge_all_csv',
+        ]);
+
+        $output = new BufferedOutput();
+        $application->run($input, $output);
 
         $this->file = new \SplFileObject(dirname(__DIR__) . '/../files/all.csv');
     }
