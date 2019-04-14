@@ -3,5 +3,5 @@ index:
     defaults: { _controller: 'App\Controller\MainController::index' }
 
 search:
-    path: /search
+    path: '/search'
     defaults: { _controller: 'App\Controller\MainController::search' }

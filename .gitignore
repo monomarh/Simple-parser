@@ -11,10 +11,11 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
-###> apache-log-files ###
+###> apache-files ###
+/public/.htaccess
 /public/error.log
 /public/access.log
-###< apache-log-files ###
+###< apache-files ###
 
 ###> parsing files ###
 /files/*

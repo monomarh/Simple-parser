@@ -7,8 +7,9 @@ namespace App\Controller;
 use App\Service\HtmlParser;
 use Cowsayphp\Cow;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @package App\Controller
@@ -51,7 +52,10 @@ class MainController extends AbstractController
     {
         return new Response(
             '<pre style="margin-left: 40vw">' .
-            Cow::say('Hello') .
+            Cow::say(sprintf(
+                    '<a href="%s">Parse products</a>',
+                    $this->generateUrl('index', [], UrlGeneratorInterface::ABSOLUTE_URL))
+            ) .
             '<pre>'
         );
     }

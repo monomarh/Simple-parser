@@ -60,9 +60,9 @@ class HtmlParser
      * @param string $url
      * @param int $pagination
      *
-     * @return void
+     * @return array
      */
-    public function parseHtml(string $url, int $pagination): void
+    public function parseHtml(string $url, int $pagination): array
     {
         for ($i = 0; $i < $pagination; $i++) {
             $requiredFieldsFromHtml = [];
@@ -84,6 +84,8 @@ class HtmlParser
                     $this->productsForSaving[$key + $i * 24][] = $productField->text();
                 }
             }
+
+            return $this->productsForSaving;
         }
     }
 

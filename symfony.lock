@@ -2,6 +2,9 @@
     "alrik11es/cowsayphp": {
         "version": "1.2.0"
     },
+    "doctrine/inflector": {
+        "version": "v1.3.0"
+    },
     "imangazaliev/didom": {
         "version": "1.14.1"
     },
@@ -10,6 +13,9 @@
     },
     "jonnyw/php-phantomjs": {
         "version": "v4.6.1"
+    },
+    "nikic/php-parser": {
+        "version": "v4.2.1"
     },
     "psr/cache": {
         "version": "1.0.1"
@@ -99,6 +105,15 @@
     },
     "symfony/http-kernel": {
         "version": "v3.4.24"
+    },
+    "symfony/maker-bundle": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
+        }
     },
     "symfony/polyfill-apcu": {
         "version": "v1.11.0"
