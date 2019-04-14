@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Service;
 
 use DiDom\Document;
+use JonnyW\PhantomJs\Client;
 
 /**
  * @package App\Service
@@ -17,7 +18,32 @@ class HtmlParser
     private $selectors = ['.product__brand', '.product__name'];
 
     /**
+     * @var \SplFileObject
+     */
+    private $file;
+
+    /**
+     * @var array
+     */
+    private $productsForSaving = [];
+
+    /**
+     * @param string $fileName
+     */
+    public function __construct(string $fileName)
+    {
+        $fileNameWithExtension = dirname(__DIR__) . '/../files/' . $fileName . '.csv';
+
+        $fp = fopen($fileNameWithExtension, 'wb');
+        fclose($fp);
+
+        $this->file = new \SplFileObject($fileNameWithExtension, 'wb');
+    }
+
+    /**
      * @param array $selectors
+     *
+     * @return void
      */
     public function addSelectors(array $selectors): void
     {
@@ -31,47 +57,68 @@ class HtmlParser
     }
 
     /**
-     * @param string $productTypes
      * @param string $url
      * @param int $pagination
      *
-     * @throws \Exception
+     * @return void
      */
-    public function parseHtml(string $productTypes, string $url, int $pagination): void
+    public function parseHtml(string $url, int $pagination): void
     {
-        $fileName = $productTypes . '.csv';
-        $fp = fopen(dirname(__DIR__) . '/../files/'. $fileName, 'wb');
-        $elementsForImport = [];
-        $i = 0;
+        for ($i = 0; $i < $pagination; $i++) {
+            $requiredFieldsFromHtml = [];
 
-        while ($i < $pagination) {
-            $elements = [];
-
-            $load = Parser::getPage([
-                'url' 	  => $url . '?' . sprintf('&offset=%d&limit=24', $i * 24),
-                'timeout' => 10,
-            ]);
-
-            $html = new Document($load['data']['content']);
+            $html = new Document(
+                $this->sendRequestAndReturnResponse(
+                    $url, sprintf('&offset=%d&limit=24', $i * 24)
+                )
+            );
 
             foreach ($this->selectors as $selector) {
-                $elements[] = $html->find($selector);
-                dump($html->find($selector));
+                $requiredFieldsFromHtml [] = $html->find($selector);
             }
 
-            foreach ($elements as $element) {
-                foreach ($element as $key => $product) {
-                    $elementsForImport[$key + $i * 24][] = $product->text();
+            foreach ($requiredFieldsFromHtml  as $productsSameFields) {
+                foreach ($productsSameFields as $key => $productField) {
+                    if (preg_match('/^[0-5]{1}$/', (string)$key)) { continue; }
+
+                    $this->productsForSaving[$key + $i * 24][] = $productField->text();
                 }
             }
-
-            $i++;
         }
+    }
 
-        foreach($elementsForImport as $product) {
-            fputcsv($fp, $product);
+    /**
+     * @return void
+     */
+    public function saveInFile(): void
+    {
+        foreach($this->productsForSaving as $product) {
+            $this->file->fputcsv($product);
         }
+    }
 
-        fclose($fp);
+    /**
+     * @param string $url
+     * @param string $parametrisesForGetRequest
+     *
+     * @return string
+     */
+    private function sendRequestAndReturnResponse(string $url, string $parametrisesForGetRequest = ''): string
+    {
+        /** @var Client $client */
+        $client = Client::getInstance();
+
+        $client->getEngine()->setPath(dirname(__DIR__) . '/../bin/phantomjs');
+
+        $request = $client->getMessageFactory()->createRequest(
+            $url . '?&' . $parametrisesForGetRequest,
+            'GET'
+        );
+
+        $response = $client->getMessageFactory()->createResponse();
+
+        $client->send($request, $response);
+
+        return $response->getContent();
     }
 }

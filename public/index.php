@@ -1,11 +1,10 @@
 <?php
 
 use App\Kernel;
-use Cowsayphp\Cow;
 use Symfony\Component\Debug\Debug;
 use Symfony\Component\HttpFoundation\Request;
 
-require dirname(__DIR__) . '/config/bootstrap.php';
+require dirname(__DIR__).'/config/bootstrap.php';
 
 if ($_SERVER['APP_DEBUG']) {
     umask(0000);
@@ -26,15 +25,3 @@ $request = Request::createFromGlobals();
 $response = $kernel->handle($request);
 $response->send();
 $kernel->terminate($request, $response);
-
-//<?php
-//
-//declare(strict_types = 1);
-//
-//require dirname(__DIR__) . '/vendor/autoload.php';
-//
-//use Cowsayphp\Cow;
-//use TelegramBot\Api\Client;
-//use TelegramBot\Api\Exception;
-//
-
