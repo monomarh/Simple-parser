@@ -35,7 +35,7 @@ class Seeker
     /**
      * @var string
      */
-    private $siteForSearchingComposition = 'http://www.cosdna.com/eng/product.php';
+    private $siteForSearchingComposition = 'http://www.cosdna.com/eng';
 
     /**
      * @var EntityManagerInterface
@@ -69,7 +69,9 @@ class Seeker
     {
         $products = $this->entityManager->getRepository(Product::class)->findAll();
 
+        $i = 0;
         foreach ($products as $product) {
+            if ($i === 10) {return [];}
             $searchStatus = false;
             $requestLength = 0;
 
@@ -80,7 +82,10 @@ class Seeker
 
             while (!$searchStatus && ($requestLength > 1)) {
                 $html = $this->getDomFromUrl(
-                    sprintf('?q=%s+%s', $product->getBrand(), implode('+', $wordsForGetRequest))
+                    sprintf(
+                        '/product.php?q=%s+%s',
+                        $product->getBrand(),
+                        implode('+', $wordsForGetRequest))
                 );
 
                 $nodeElements = $html->find('.ProdName');
@@ -98,6 +103,7 @@ class Seeker
 
                     $product->setComposition($productComposition);
                     $this->entityManager->persist($product);
+                    $this->entityManager->flush();
 
                     $searchStatus = true;
                 } else {

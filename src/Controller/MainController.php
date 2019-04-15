@@ -35,11 +35,11 @@ class MainController extends AbstractController
     public function index(): Response
     {
         $urls = [
-            'https://shop.cravt.by/ukhod-11439-s' => 406,
-            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
-            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
-            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
+//            'https://shop.cravt.by/ukhod-11439-s' => 406,
+//            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
+//            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
+//            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
+//            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
         ];
 
         foreach ($urls as $url => $productCounter) {
