@@ -44,6 +44,13 @@ class Product
     private $composition;
 
     /**
+     * @var bool
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $riskIndicator;
+
+    /**
      * @return int|null
      */
     public function getId(): ?int
@@ -97,5 +104,21 @@ class Product
     public function setComposition(array $composition): void
     {
         $this->composition = $composition;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getRiskIndicator(): ?bool
+    {
+        return $this->riskIndicator;
+    }
+
+    /**
+     * @param bool $riskIndicator
+     */
+    public function setRiskIndicator(bool $riskIndicator)
+    {
+        $this->riskIndicator = $riskIndicator;
     }
 }

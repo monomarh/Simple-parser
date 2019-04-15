@@ -85,7 +85,7 @@ class ParseProductsCommand extends Command
         }
 
         if (!empty($result)) {
-            $this->io->success(Cow::say(sprintf('Good import %d products', count($result))));
+            $this->io->success(Cow::say(sprintf('Good import from %d pages', count($result))));
         } else {
             $this->io->error(Cow::say('Bad import'));
         }

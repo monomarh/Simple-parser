@@ -55,14 +55,11 @@ class MergeCsvInCommand extends Command
         }
 
         foreach (glob(dirname(__DIR__) . '/../files/*.csv') as $filename) {
-
             if (($file = new \SplFileObject($filename, 'rb')) !== false) {
-
                 while (($data = $file->fgetcsv()) !== null) {
                     $fieldsCount = count($data);
 
-                    for ($i=0; $i < $fieldsCount; $i++)
-                    {
+                    for ($i=0; $i < $fieldsCount; $i++) {
                         $arrayFromCsv[$rowKey][] = $data[$i];
                     }
                     $rowKey++;
@@ -73,7 +70,9 @@ class MergeCsvInCommand extends Command
         $fp = fopen(dirname(__DIR__) . '/../files/all.csv', 'wb');
 
         foreach ($arrayFromCsv as $fields) {
-            if ($fields[0] ===  null) { continue; }
+            if ($fields[0] ===  null) {
+                continue;
+            }
             foreach ($fields as $propertyKey => $field) {
                 $fields[$propertyKey] = str_replace(PHP_EOL, '', $field);
             }

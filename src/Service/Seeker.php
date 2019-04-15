@@ -28,11 +28,6 @@ class Seeker
     const PRODUCT_TITLE = 1;
 
     /**
-     * @var \SplFileObject
-     */
-    private $file;
-
-    /**
      * @var string
      */
     private $siteForSearchingComposition = 'http://www.cosdna.com/eng';
@@ -58,39 +53,51 @@ class Seeker
         $output = new BufferedOutput();
         $application->run($input, $output);
 
-        $this->file = new \SplFileObject(dirname(__DIR__) . '/../files/all.csv');
         $this->entityManager = $entityManager;
     }
 
     /**
-     * @return array
+     * @return int
      */
-    public function startSearching(): array
+    public function startSearching(): int
     {
         $products = $this->entityManager->getRepository(Product::class)->findAll();
+        $productCounter = 0;
 
-        $i = 0;
         foreach ($products as $product) {
-            if ($i === 10) {return [];}
+            if ($product->getComposition() !== []) {
+                continue;
+            }
+
             $searchStatus = false;
+            $riskIndicator = false;
             $requestLength = 0;
 
-            if (preg_match_all('/\b(\w+)/', $product->getTitle(), $matches)) {
+            if (preg_match_all('/\b([a-zA-Z]+)/', $product->getTitle(), $matches)) {
                 $requestLength = count($matches[0]);
+                if ($requestLength === 1) {
+                    $riskIndicator = true;
+                } elseif ($requestLength === 0) {
+                    continue;
+                }
                 $wordsForGetRequest = $matches[0];
             }
 
-            while (!$searchStatus && ($requestLength > 1)) {
+
+            while (!$searchStatus && ($requestLength > 0)) {
                 $html = $this->getDomFromUrl(
                     sprintf(
                         '/product.php?q=%s+%s',
                         $product->getBrand(),
-                        implode('+', $wordsForGetRequest))
+                        implode('+', $wordsForGetRequest)
+                    )
                 );
 
                 $nodeElements = $html->find('.ProdName');
                 if (count($nodeElements) > 0) {
                     $pageWithProductComposition = $nodeElements[0]->first('a')->getAttribute('href');
+
+                    dump(true);
 
                     $html = $this->getDomFromUrl('/' . $pageWithProductComposition);
 
@@ -101,9 +108,13 @@ class Seeker
                         $productComposition[] = $compositionElement->first('td')->text();
                     }
 
+                    $productCounter++;
+                    if ($riskIndicator || count($wordsForGetRequest) < 3) {
+                        $product->setRiskIndicator(true);
+                    }
+
                     $product->setComposition($productComposition);
                     $this->entityManager->persist($product);
-                    $this->entityManager->flush();
 
                     $searchStatus = true;
                 } else {
@@ -111,7 +122,13 @@ class Seeker
                     unset($wordsForGetRequest[$requestLength]);
                 }
             }
+
+            dump($product);
+            dump('############################################');
+            $this->entityManager->flush();
         }
+
+        return $productCounter;
     }
 
     /**
@@ -119,11 +136,11 @@ class Seeker
      *
      * @return Document
      */
-    public function getDomFromUrl(string $getOptions)
+    public function getDomFromUrl(string $getOptions): Document
     {
         $url = $this->siteForSearchingComposition . $getOptions;
 
-        sleep(random_int(2, 9));
+        sleep(random_int(2, 6));
 
         $load = Parser::getPage([
             'url' 	  => $url,

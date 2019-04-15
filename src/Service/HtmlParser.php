@@ -81,7 +81,8 @@ class HtmlParser
 
             $html = new Document(
                 $this->sendRequestAndReturnResponse(
-                    $url, sprintf($this->paginationOptions, $pageNumber * self::PRODUCTS_PER_PAGE)
+                    $url,
+                    sprintf($this->paginationOptions, $pageNumber * self::PRODUCTS_PER_PAGE)
                 )
             );
 
@@ -92,7 +93,9 @@ class HtmlParser
             foreach ($requiredFieldsFromHtml  as $productsSameFields) {
                 foreach ($productsSameFields as $key => $productField) {
                     /** Skipping products that were hiding in the navbar */
-                    if (preg_match('/^[0-5]{1}$/', (string)$key)) { continue; }
+                    if (preg_match('/^[0-5]{1}$/', (string)$key)) {
+                        continue;
+                    }
 
                     $this->productsForSaving[$key + $pageNumber * self::PRODUCTS_PER_PAGE][] = $productField->text();
                 }
@@ -106,7 +109,7 @@ class HtmlParser
      */
     public function saveProducts(): void
     {
-        foreach($this->productsForSaving as $product) {
+        foreach ($this->productsForSaving as $product) {
             $this->file->fputcsv($product);
         }
     }
@@ -118,7 +121,7 @@ class HtmlParser
      */
     public function saveProductsInDatabase(EntityManagerInterface $entityManager): void
     {
-        foreach($this->productsForSaving as $product) {
+        foreach ($this->productsForSaving as $product) {
             $newProduct = new Product();
             $newProduct->setBrand($product[Seeker::PRODUCT_BRAND]);
             $newProduct->setTitle(str_replace(PHP_EOL, '', $product[Seeker::PRODUCT_TITLE]));

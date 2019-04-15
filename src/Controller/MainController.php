@@ -35,11 +35,11 @@ class MainController extends AbstractController
     public function index(): Response
     {
         $urls = [
-//            'https://shop.cravt.by/ukhod-11439-s' => 406,
-//            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
-//            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
-//            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-//            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
+            'https://shop.cravt.by/ukhod-11439-s' => 406,
+            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
+            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
+            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
+            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
         ];
 
         foreach ($urls as $url => $productCounter) {
@@ -51,9 +51,11 @@ class MainController extends AbstractController
 
         return new Response(
             '<pre style="margin-left: 40vw">' .
-            Cow::say(sprintf(
-                '<a href="%s">Search products composition</a>',
-                $this->generateUrl('search', [], UrlGeneratorInterface::ABSOLUTE_URL))
+            Cow::say(
+                sprintf(
+                    '<a href="%s">Search products composition</a>',
+                    $this->generateUrl('search', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                )
             ) .
             '<pre>'
         );
@@ -68,9 +70,11 @@ class MainController extends AbstractController
 
         return new Response(
             '<pre style="margin-left: 40vw">' .
-            Cow::say(sprintf(
+            Cow::say(
+                sprintf(
                     '<a href="%s">Parse products</a>',
-                    $this->generateUrl('index', [], UrlGeneratorInterface::ABSOLUTE_URL))
+                    $this->generateUrl('index', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                )
             ) .
             '<pre>'
         );
