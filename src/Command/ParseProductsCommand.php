@@ -33,13 +33,20 @@ class ParseProductsCommand extends Command
     private $entityManager;
 
     /**
-     * @param EntityManagerInterface $entityManager
+     * @var HtmlParser
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    private $parser;
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param HtmlParser $parser
+     */
+    public function __construct(EntityManagerInterface $entityManager, HtmlParser $parser)
     {
         parent::__construct($name = null);
 
         $this->entityManager = $entityManager;
+        $this->parser = $parser;
     }
 
     /**
@@ -48,7 +55,7 @@ class ParseProductsCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Parsing products from SPA websites')
+            ->setDescription('Parsing products from SPA website')
         ;
     }
 
@@ -65,26 +72,18 @@ class ParseProductsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $urls = [
-            'https://shop.cravt.by/ukhod-11439-s' => 406,
-            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
-            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
-            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
-        ];
         $result = [];
 
-        foreach ($urls as $url => $productCount) {
-            /** @var HtmlParser $parser */
-            $parser = new HtmlParser((string)$productCount);
-
-            $result[] = $parser->parseHtml($url, (int)($productCount / HtmlParser::PRODUCTS_PER_PAGE) + 1);
-
-            $parser->saveProducts();
-            $parser->saveProductsInDatabase($this->entityManager);
+        foreach (HtmlParser::URLS_WITH_PRODUCTS as $url => $productCount) {
+            $result[] = $this->parser->parseHtml(
+                $url,
+                (int)floor($productCount / HtmlParser::PRODUCTS_PER_PAGE) + 1
+            );
         }
 
-        if (!empty($result)) {
+        $this->parser->saveProductsInDatabase($this->entityManager);
+
+        if ($result !== []) {
             $this->io->success(Cow::say(sprintf('Good import from %d pages', count($result))));
         } else {
             $this->io->error(Cow::say('Bad import'));

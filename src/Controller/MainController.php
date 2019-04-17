@@ -7,6 +7,7 @@ namespace App\Controller;
 use Cowsayphp\Cow;
 use App\Service\Seeker;
 use App\Service\HtmlParser;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,11 +23,25 @@ class MainController extends AbstractController
     private $seekerComposition;
 
     /**
-     * @param Seeker $seeker
+     * @var HtmlParser
      */
-    public function __construct(Seeker $seeker)
+    private $parser;
+
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
+    /**
+     * @param HtmlParser $parser
+     * @param Seeker $seeker
+     * @param EntityManagerInterface $entityManager
+     */
+    public function __construct(HtmlParser $parser, Seeker $seeker, EntityManagerInterface $entityManager)
     {
         $this->seekerComposition = $seeker;
+        $this->parser = $parser;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -34,30 +49,14 @@ class MainController extends AbstractController
      */
     public function index(): Response
     {
-        $urls = [
-            'https://shop.cravt.by/ukhod-11439-s' => 406,
-            'https://shop.cravt.by/ochishchenie-11448-s' => 171,
-            'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
-            'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-            'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
-        ];
-
-        foreach ($urls as $url => $productCounter) {
-            $parser = new HtmlParser((string)$productCounter);
-            $parser->parseHtml($url, (int)($productCounter / HtmlParser::PRODUCTS_PER_PAGE) + 1);
-            $parser->saveProducts();
-            $parser->saveProductsInDatabase($this->getDoctrine()->getManager());
+        foreach (HtmlParser::URLS_WITH_PRODUCTS as $url => $productCounter) {
+            $this->parser->parseHtml($url, (int)($productCounter / HtmlParser::PRODUCTS_PER_PAGE) + 1);
         }
 
+        $this->parser->saveProductsInDatabase($this->entityManager);
+
         return new Response(
-            '<pre style="margin-left: 40vw">' .
-            Cow::say(
-                sprintf(
-                    '<a href="%s">Search products composition</a>',
-                    $this->generateUrl('search', [], UrlGeneratorInterface::ABSOLUTE_URL)
-                )
-            ) .
-            '<pre>'
+            $this->cowResponseImage('search', 'Search products composition')
         );
     }
 
@@ -66,17 +65,33 @@ class MainController extends AbstractController
      */
     public function search(): Response
     {
-        $result = $this->seekerComposition->startSearching();
+        $this->seekerComposition->startSearching();
 
         return new Response(
+            $this->cowResponseImage('index', 'Parse products')
+        );
+    }
+
+    /**
+     * @param string $cowSpeech
+     * @param string $routeNameForRedirect
+     *
+     * @return string
+     */
+    private function cowResponseImage(string $routeNameForRedirect, string $cowSpeech): string
+    {
+        $routeUrl = $this->generateUrl($routeNameForRedirect, [], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        return
             '<pre style="margin-left: 40vw">' .
             Cow::say(
                 sprintf(
-                    '<a href="%s">Parse products</a>',
-                    $this->generateUrl('index', [], UrlGeneratorInterface::ABSOLUTE_URL)
+                    '<a href="%s">%s</a>',
+                    $routeUrl,
+                    $cowSpeech
                 )
             ) .
             '<pre>'
-        );
+        ;
     }
 }

@@ -38,21 +38,10 @@ class Seeker
     private $entityManager;
 
     /**
-     * @param KernelInterface $kernel
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(KernelInterface $kernel, EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $application = new Application($kernel);
-        $application->setAutoExit(false);
-
-        $input = new ArrayInput([
-            'command' => 'app:merge_all_csv',
-        ]);
-
-        $output = new BufferedOutput();
-        $application->run($input, $output);
-
         $this->entityManager = $entityManager;
     }
 
@@ -122,9 +111,9 @@ class Seeker
                     unset($wordsForGetRequest[0]);
                 }
             }
-
-            $this->entityManager->flush();
         }
+        
+        $this->entityManager->flush();
 
         return $productCounter;
     }
@@ -144,7 +133,7 @@ class Seeker
             sleep(2);
         }
 
-        $load = Parser::getPage([
+        $load = Curl::getPage([
             'url' 	  => $url,
             'timeout' => 10,
         ]);

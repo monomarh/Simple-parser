@@ -17,7 +17,7 @@ final class Version20190414172654 extends AbstractMigration
      */
     public function getDescription(): string
     {
-        return 'Added Product';
+        return 'Add Product';
     }
 
     /**

@@ -47,7 +47,7 @@ class SearchCompositionCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Search products composition from \'/files/all.csv\'')
+            ->setDescription('Search products composition from database')
         ;
     }
 
@@ -64,10 +64,12 @@ class SearchCompositionCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $result = $this->seekerComposition->startSearching();
+        $countOfGoodSearchComposition = $this->seekerComposition->startSearching();
 
-        if (!empty($result)) {
-            $this->io->success(Cow::say(sprintf('Good search composition %d products', count($result))));
+        if ($countOfGoodSearchComposition !== 0) {
+            $this->io->success(Cow::say(
+                sprintf('Good search composition %d products', $countOfGoodSearchComposition)
+            ));
         } else {
             $this->io->error(Cow::say('Bad import'));
         }

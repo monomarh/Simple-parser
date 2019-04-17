@@ -20,14 +20,20 @@ class HtmlParser
     private $selectors = ['.product__brand', '.product__name'];
 
     /**
+     * @var array
+     */
+    const URLS_WITH_PRODUCTS = [
+        'https://shop.cravt.by/ukhod-11439-s' => 406,
+        'https://shop.cravt.by/ochishchenie-11448-s' => 171,
+        'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
+        'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
+        'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
+    ];
+
+    /**
      * @var int
      */
     const PRODUCTS_PER_PAGE = 24;
-
-    /**
-     * @var \SplFileObject
-     */
-    private $file;
 
     /**
      * @var array
@@ -38,19 +44,6 @@ class HtmlParser
      * @var string
      */
     private $paginationOptions = '&offset=%d&limit=24';
-
-    /**
-     * @param string $fileName
-     */
-    public function __construct(string $fileName)
-    {
-        $fileNameWithExtension = dirname(__DIR__) . '/../files/' . $fileName . '.csv';
-
-        $fp = fopen($fileNameWithExtension, 'wb');
-        fclose($fp);
-
-        $this->file = new \SplFileObject($fileNameWithExtension, 'wb');
-    }
 
     /**
      * @param array $selectors
@@ -79,6 +72,7 @@ class HtmlParser
         for ($pageNumber = 0; $pageNumber < $pagination; $pageNumber++) {
             $requiredFieldsFromHtml = [];
 
+            /** @var Document $html */
             $html = new Document(
                 $this->sendRequestAndReturnResponse(
                     $url,
@@ -87,7 +81,7 @@ class HtmlParser
             );
 
             foreach ($this->selectors as $selector) {
-                $requiredFieldsFromHtml [] = $html->find($selector);
+                $requiredFieldsFromHtml[] = $html->find($selector);
             }
 
             foreach ($requiredFieldsFromHtml  as $productsSameFields) {
@@ -105,16 +99,6 @@ class HtmlParser
     }
 
     /**
-     * @return void
-     */
-    public function saveProducts(): void
-    {
-        foreach ($this->productsForSaving as $product) {
-            $this->file->fputcsv($product);
-        }
-    }
-
-    /**
      * @param EntityManagerInterface $entityManager
      *
      * @return void
@@ -123,8 +107,10 @@ class HtmlParser
     {
         foreach ($this->productsForSaving as $product) {
             $newProduct = new Product();
+
             $newProduct->setBrand($product[Seeker::PRODUCT_BRAND]);
             $newProduct->setTitle(str_replace(PHP_EOL, '', $product[Seeker::PRODUCT_TITLE]));
+
             $entityManager->persist($newProduct);
         }
 

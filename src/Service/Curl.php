@@ -7,7 +7,7 @@ namespace App\Service;
 /**
  * @package App\Service
  */
-class Parser
+class Curl
 {
     /**
      * @var array
