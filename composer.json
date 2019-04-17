@@ -62,5 +62,8 @@
             "allow-contrib": false,
             "require": "3.4.*"
         }
+    },
+    "require-dev": {
+        "phpmd/phpmd": "^2.6"
     }
 }

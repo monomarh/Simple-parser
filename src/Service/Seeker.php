@@ -110,7 +110,7 @@ class Seeker
 
                     $productCounter++;
                     if ($riskIndicator || count($wordsForGetRequest) < 3) {
-                        $product->setRiskIndicator(true);
+                        $product->setRiskIndicator(false);
                     }
 
                     $product->setComposition($productComposition);
@@ -119,12 +119,10 @@ class Seeker
                     $searchStatus = true;
                 } else {
                     $requestLength--;
-                    unset($wordsForGetRequest[$requestLength]);
+                    unset($wordsForGetRequest[0]);
                 }
             }
 
-            dump($product);
-            dump('############################################');
             $this->entityManager->flush();
         }
 
@@ -140,7 +138,11 @@ class Seeker
     {
         $url = $this->siteForSearchingComposition . $getOptions;
 
-        sleep(random_int(2, 6));
+        try {
+            sleep(random_int(2, 6));
+        } catch (\Exception $e) {
+            sleep(2);
+        }
 
         $load = Parser::getPage([
             'url' 	  => $url,
