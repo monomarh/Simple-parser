@@ -28,6 +28,11 @@ class Seeker
     const PRODUCT_TITLE = 1;
 
     /**
+     * @var int
+     */
+    const WORDS_COUNT_FOR_SAFE_SEARCH = 3;
+
+    /**
      * @var string
      */
     private $siteForSearchingComposition = 'http://www.cosdna.com/eng';
@@ -45,33 +50,22 @@ class Seeker
         $this->entityManager = $entityManager;
     }
 
-    /**
-     * @return int
-     */
-    public function startSearching(): int
+    public function startSearching()
     {
         $products = $this->entityManager->getRepository(Product::class)->findAll();
-        $productCounter = 0;
 
         foreach ($products as $product) {
-            if ($product->getComposition() !== []) {
-                continue;
-            }
-
             $searchStatus = false;
             $riskIndicator = false;
-            $requestLength = 0;
 
-            if (preg_match_all('/\b([a-zA-Z]+)/', $product->getTitle(), $matches)) {
-                $requestLength = count($matches[0]);
-                if ($requestLength === 1) {
-                    $riskIndicator = true;
-                } elseif ($requestLength === 0) {
-                    continue;
-                }
-                $wordsForGetRequest = $matches[0];
+            $wordsForGetRequest = $this->getProductSearchWords($product) ?? [];
+            $requestLength = count($wordsForGetRequest);
+
+            if ($requestLength === 1) {
+                $riskIndicator = true;
+            } elseif (!$requestLength) {
+                continue;
             }
-
 
             while (!$searchStatus && ($requestLength > 0)) {
                 $html = $this->getDomFromUrl(
@@ -83,23 +77,21 @@ class Seeker
                 );
 
                 $nodeElements = $html->find('.ProdName');
+
                 if (count($nodeElements) > 0) {
                     $pageWithProductComposition = $nodeElements[0]->first('a')->getAttribute('href');
 
-                    dump(true);
+                    $htmlWithComposition = $this->getDomFromUrl('/' . $pageWithProductComposition);
 
-                    $html = $this->getDomFromUrl('/' . $pageWithProductComposition);
-
-                    $compositionElements = $html->find('tr[valign=top]');
+                    $compositionElements = $htmlWithComposition->find('tr[valign=top]');
                     $productComposition = [];
 
                     foreach ($compositionElements as $compositionElement) {
                         $productComposition[] = $compositionElement->first('td')->text();
                     }
 
-                    $productCounter++;
-                    if ($riskIndicator || count($wordsForGetRequest) < 3) {
-                        $product->setRiskIndicator(false);
+                    if ($riskIndicator || count($wordsForGetRequest) < self::WORDS_COUNT_FOR_SAFE_SEARCH) {
+                        $product->setRiskIndicator(true);
                     }
 
                     $product->setComposition($productComposition);
@@ -108,14 +100,29 @@ class Seeker
                     $searchStatus = true;
                 } else {
                     $requestLength--;
-                    unset($wordsForGetRequest[0]);
+                    unset($wordsForGetRequest[$requestLength]);
                 }
             }
         }
-        
-        $this->entityManager->flush();
 
-        return $productCounter;
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @return int
+     */
+    public function getInfoAboutSearching(): int
+    {
+        $products = $this->entityManager->getRepository(Product::class)->findAll();
+        $countProductsWithComposition = 0;
+
+        foreach ($products as $product) {
+            if ($product->getComposition() !== []) {
+                $countProductsWithComposition++;
+            }
+        }
+
+        return $countProductsWithComposition;
     }
 
     /**
@@ -139,5 +146,17 @@ class Seeker
         ]);
 
         return new Document($load['data']['content']);
+    }
+
+    /**
+     * @param Product $product
+     *
+     * @return mixed
+     */
+    private function getProductSearchWords(Product $product)
+    {
+        preg_match_all('/\b([a-zA-Z]+)/', $product->getTitle(), $matches);
+
+        return $matches[0];
     }
 }

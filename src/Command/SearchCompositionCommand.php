@@ -64,7 +64,9 @@ class SearchCompositionCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $countOfGoodSearchComposition = $this->seekerComposition->startSearching();
+        $this->seekerComposition->startSearching();
+
+        $countOfGoodSearchComposition = $this->seekerComposition->getInfoAboutSearching();
 
         if ($countOfGoodSearchComposition !== 0) {
             $this->io->success(Cow::say(
