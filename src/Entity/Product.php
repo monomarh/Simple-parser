@@ -72,6 +72,13 @@ class Product
     private $notableEffectsAndIngredients;
 
     /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $ingredientsRelatedToSkinTypes;
+
+    /**
      * @return int|null
      */
     public function getId(): ?int
@@ -199,6 +206,26 @@ class Product
     public function setNotableEffectsAndIngredients($notableEffectsAndIngredients): self
     {
         $this->notableEffectsAndIngredients = $notableEffectsAndIngredients;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getIngredientsRelatedToSkinTypes()
+    {
+        return $this->ingredientsRelatedToSkinTypes;
+    }
+
+    /**
+     * @param $ingredientsRelatedToSkinTypes
+     *
+     * @return Product
+     */
+    public function setIngredientsRelatedToSkinTypes($ingredientsRelatedToSkinTypes): self
+    {
+        $this->ingredientsRelatedToSkinTypes = $ingredientsRelatedToSkinTypes;
 
         return $this;
     }
