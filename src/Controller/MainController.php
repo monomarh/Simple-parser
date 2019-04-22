@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Controller;
 
+use App\Service\Analyzer;
 use Cowsayphp\Cow;
 use App\Service\Seeker;
 use App\Service\HtmlParser;
@@ -33,15 +34,26 @@ class MainController extends AbstractController
     private $entityManager;
 
     /**
+     * @var Analyzer
+     */
+    private $analyzer;
+
+    /**
      * @param HtmlParser $parser
      * @param Seeker $seeker
      * @param EntityManagerInterface $entityManager
+     * @param Analyzer $analyzer
      */
-    public function __construct(HtmlParser $parser, Seeker $seeker, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        HtmlParser $parser,
+        Seeker $seeker,
+        EntityManagerInterface $entityManager,
+        Analyzer $analyzer
+    ) {
         $this->seekerComposition = $seeker;
         $this->parser = $parser;
         $this->entityManager = $entityManager;
+        $this->analyzer = $analyzer;
     }
 
     /**
@@ -56,7 +68,8 @@ class MainController extends AbstractController
         $this->parser->saveProductsInDatabase($this->entityManager);
 
         return new Response(
-            $this->cowResponseImage('search', 'Search products composition')
+            $this->cowResponseImage('search', 'Search products composition') . PHP_EOL .
+            $this->cowResponseImage('analyze', 'Analyze products composition')
         );
     }
 
@@ -66,6 +79,18 @@ class MainController extends AbstractController
     public function search(): Response
     {
         $this->seekerComposition->startSearching();
+
+        return new Response(
+            $this->cowResponseImage('index', 'Parse products')
+        );
+    }
+
+    /**
+     * @return Response
+     */
+    public function Analyze(): Response
+    {
+        $this->analyzer->analyze();
 
         return new Response(
             $this->cowResponseImage('index', 'Parse products')

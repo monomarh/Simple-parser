@@ -27,7 +27,7 @@ class HtmlParser
 //        'https://shop.cravt.by/ochishchenie-11448-s' => 171,
 //        'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
 //        'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-        'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
+//        'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
     ];
 
     /**
@@ -121,10 +121,16 @@ class HtmlParser
      * @param string $url
      * @param string $parametrisesForGetRequest
      *
-     * @return string
+     * @return string|null
      */
-    private function sendRequestAndReturnResponse(string $url, string $parametrisesForGetRequest = ''): string
+    public function sendRequestAndReturnResponse(string $url, string $parametrisesForGetRequest = ''): ?string
     {
+        try {
+            sleep(random_int(2, 4));
+        } catch (\Exception $e) {
+            sleep(2);
+        }
+
         /** @var Client $client */
         $client = Client::getInstance();
 
@@ -140,5 +146,31 @@ class HtmlParser
         $client->send($request, $response);
 
         return $response->getContent();
+    }
+
+    /**
+     * @param string $url
+     * @param string $getOptions
+     *
+     * @return Document
+     */
+    public function getDomFromUrl(string $url, string $getOptions): Document
+    {
+        $urlWithGetOptions = $url . '?&' . $getOptions;
+
+        try {
+            sleep(random_int(2, 6));
+        } catch (\Exception $e) {
+            sleep(2);
+        }
+
+        dump($urlWithGetOptions);
+
+        $load = Curl::getPage([
+            'url' 	  => $urlWithGetOptions,
+            'timeout' => 10,
+        ]);
+
+        return new Document($load['data']['content']);
     }
 }

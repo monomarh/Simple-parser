@@ -5,12 +5,7 @@ declare(strict_types = 1);
 namespace App\Service;
 
 use App\Entity\Product;
-use DiDom\Document;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
 
 /**
  * @package App\Service
@@ -43,11 +38,18 @@ class Seeker
     private $entityManager;
 
     /**
-     * @param EntityManagerInterface $entityManager
+     * @var HtmlParser
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    private $parser;
+
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param HtmlParser $parser
+     */
+    public function __construct(EntityManagerInterface $entityManager, HtmlParser $parser)
     {
         $this->entityManager = $entityManager;
+        $this->parser = $parser;
     }
 
     public function startSearching()
@@ -68,7 +70,8 @@ class Seeker
             }
 
             while (!$searchStatus && ($requestLength > 0)) {
-                $html = $this->getDomFromUrl(
+                $html = $this->parser->getDomFromUrl(
+                    $this->siteForSearchingComposition,
                     sprintf(
                         '/product.php?q=%s+%s',
                         $product->getBrand(),
@@ -81,7 +84,10 @@ class Seeker
                 if (count($nodeElements) > 0) {
                     $pageWithProductComposition = $nodeElements[0]->first('a')->getAttribute('href');
 
-                    $htmlWithComposition = $this->getDomFromUrl('/' . $pageWithProductComposition);
+                    $htmlWithComposition = $this->parser->getDomFromUrl(
+                        $this->siteForSearchingComposition,
+                        '/' . $pageWithProductComposition
+                    );
 
                     $compositionElements = $htmlWithComposition->find('tr[valign=top]');
                     $productComposition = [];
@@ -126,34 +132,11 @@ class Seeker
     }
 
     /**
-     * @param string $getOptions
-     *
-     * @return Document
-     */
-    public function getDomFromUrl(string $getOptions): Document
-    {
-        $url = $this->siteForSearchingComposition . $getOptions;
-
-        try {
-            sleep(random_int(2, 6));
-        } catch (\Exception $e) {
-            sleep(2);
-        }
-
-        $load = Curl::getPage([
-            'url' 	  => $url,
-            'timeout' => 10,
-        ]);
-
-        return new Document($load['data']['content']);
-    }
-
-    /**
      * @param Product $product
      *
      * @return mixed
      */
-    private function getProductSearchWords(Product $product)
+    public function getProductSearchWords(Product $product)
     {
         preg_match_all('/\b([a-zA-Z]+)/', $product->getTitle(), $matches);
 

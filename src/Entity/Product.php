@@ -51,6 +51,27 @@ class Product
     private $riskIndicator;
 
     /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $quickNotes;
+
+    /**
+     * @var bool
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $ingredientsMatchingRisk;
+
+    /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $notableEffectsAndIngredients;
+
+    /**
      * @return int|null
      */
     public function getId(): ?int
@@ -120,5 +141,65 @@ class Product
     public function setRiskIndicator(bool $riskIndicator)
     {
         $this->riskIndicator = $riskIndicator;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getQuickNotes(): ?array
+    {
+        return $this->quickNotes;
+    }
+
+    /**
+     * @param $quickNotes
+     *
+     * @return Product
+     */
+    public function setQuickNotes($quickNotes): self
+    {
+        $this->quickNotes = $quickNotes;
+
+        return $this;
+    }
+
+    /**
+     * @return bool|null
+     */
+    public function getIngredientsMatchingRisk(): ?bool
+    {
+        return $this->ingredientsMatchingRisk;
+    }
+
+    /**
+     * @param bool|null $ingredientsMatchingRisk
+     *
+     * @return Product
+     */
+    public function setIngredientsMatchingRisk(?bool $ingredientsMatchingRisk): self
+    {
+        $this->ingredientsMatchingRisk = $ingredientsMatchingRisk;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getNotableEffectsAndIngredients(): array
+    {
+        return $this->notableEffectsAndIngredients;
+    }
+
+    /**
+     * @param $notableEffectsAndIngredients
+     *
+     * @return Product
+     */
+    public function setNotableEffectsAndIngredients($notableEffectsAndIngredients): self
+    {
+        $this->notableEffectsAndIngredients = $notableEffectsAndIngredients;
+
+        return $this;
     }
 }

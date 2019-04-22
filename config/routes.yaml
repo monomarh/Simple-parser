@@ -5,3 +5,7 @@ index:
 search:
     path: '/search'
     defaults: { _controller: 'App\Controller\MainController::search' }
+
+analyze:
+    path: '/analyze'
+    defaults: { _controller: 'App\Controller\MainController::analyze' }
