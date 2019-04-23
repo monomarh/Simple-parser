@@ -64,8 +64,6 @@ class Analyzer
                 $wordsForGetRequest .= '%2C' . str_replace(' ', '+', $productComposite);
             }
 
-            dump($product->getId());
-
             try {
                 $html = $this->parser->getDomFromUrl(
                     $this->siteForAnalyzingComposition,
@@ -77,11 +75,11 @@ class Analyzer
                 $this->findNotableEffectAndIngredients($product, $html);
                 $this->findIngredientsRelatedToSkinTypes($product, $html);
             } catch (\Exception $e) {
-                dump($e->getMessage());
+                var_dump($e->getMessage());
             }
             $this->entityManager->persist($product);
-            $this->entityManager->flush();
         }
+        $this->entityManager->flush();
 
         return 1;
     }
@@ -105,11 +103,10 @@ class Analyzer
                 }
             }
         } catch (\Exception $e) {
-            dump($e->getMessage());
+            return;
         }
 
         if ($quickNotes !== []) {
-            dump($quickNotes);
             $product->setQuickNotes($quickNotes);
         }
     }
@@ -137,8 +134,6 @@ class Analyzer
 
                 $matchingRisk = 100 - count($ingredientsNotFound) * 100 / count($product->getComposition());
 
-                dump($matchingRisk);
-
                 if ($matchingRisk >= self::LOW_RISK) {
                     $product->setIngredientsMatchingRisk(null);
                 } else {
@@ -146,7 +141,7 @@ class Analyzer
                 }
             }
         } catch (\Exception $e) {
-            dump($e->getMessage());
+            return;
         }
     }
 
@@ -174,11 +169,10 @@ class Analyzer
                 }
             }
         } catch (\Exception $e) {
-            dump($e->getMessage());
+            return;
         }
 
         if ($notableEffectsAndIngredients !== []) {
-            dump($notableEffectsAndIngredients);
             $product->setNotableEffectsAndIngredients($notableEffectsAndIngredients);
         }
     }
@@ -217,7 +211,7 @@ class Analyzer
                 $relatedList[$i++] = ['Good' => $goodList, 'Bad' => $badList];
             }
         } catch (\Exception $e) {
-            dump($e->getMessage());
+            return;
         }
 
         foreach ($relatedList as &$item) {
@@ -232,7 +226,6 @@ class Analyzer
         unset($item);
 
         if ($relatedList !== []) {
-            dump($relatedList);
             $product->setDrySkin($relatedList[0] ?? null);
             $product->setOilySkin($relatedList[1] ?? null);
             $product->setSensitiveSkin($relatedList[2] ?? null);
