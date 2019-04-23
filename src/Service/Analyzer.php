@@ -55,7 +55,7 @@ class Analyzer
         foreach ($products as $product) {
             $productComposition = $product->getComposition();
 
-            if (!$productComposition) {
+            if (!$productComposition || $product->getQuickNotes()) {
                 continue;
             }
 
@@ -64,16 +64,21 @@ class Analyzer
                 $wordsForGetRequest .= '%2C' . str_replace(' ', '+', $productComposite);
             }
 
-            $html = $this->parser->getDomFromUrl(
-                $this->siteForAnalyzingComposition,
-                'product%5Bingredient%5D=' . $wordsForGetRequest
-            );
+            dump($product->getId());
 
-            $this->findQuickNotes($product, $html);
-            $this->setMatchingRisk($product, $html);
-            $this->findNotableEffectAndIngredients($product, $html);
-            $this->findIngredientsRelatedToSkinTypes($product, $html);
+            try {
+                $html = $this->parser->getDomFromUrl(
+                    $this->siteForAnalyzingComposition,
+                    'product%5Bingredient%5D=' . $wordsForGetRequest
+                );
 
+                $this->findQuickNotes($product, $html);
+                $this->setMatchingRisk($product, $html);
+                $this->findNotableEffectAndIngredients($product, $html);
+                $this->findIngredientsRelatedToSkinTypes($product, $html);
+            } catch (\Exception $e) {
+                dump($e->getMessage());
+            }
             $this->entityManager->persist($product);
             $this->entityManager->flush();
         }
@@ -87,10 +92,12 @@ class Analyzer
      */
     private function findQuickNotes(Product $product, Document $html)
     {
+        if ($product->getQuickNotes()) {
+            return;
+        }
+
         $quickNotes = [];
-
         $nodeElements = $html->find('.col-md-3.my-2');
-
         try {
             foreach ($nodeElements as $node) {
                 if ($node->find('.fa.fa-check-square.green-icon.font-095')) {
@@ -113,8 +120,11 @@ class Analyzer
      */
     private function setMatchingRisk(Product $product, Document $html)
     {
-        $nodeWithIngredientsNotFound = $html->find('.card.my-4');
+        if ($product->getIngredientsMatchingRisk()) {
+            return;
+        }
 
+        $nodeWithIngredientsNotFound = $html->find('.card.my-4');
         try {
             $stringWithIngredientsNotFound = $nodeWithIngredientsNotFound[0]->find('p')[4]->text();
             if ($stringWithIngredientsNotFound) {
@@ -125,16 +135,14 @@ class Analyzer
                     return;
                 }
 
-                $matchingRisk = count($ingredientsNotFound) * 100 / count($product->getComposition());
+                $matchingRisk = 100 - count($ingredientsNotFound) * 100 / count($product->getComposition());
 
                 dump($matchingRisk);
 
-                if ($matchingRisk <= self::MEDIUM_RISK) {
-                    $product->setIngredientsMatchingRisk(false);
+                if ($matchingRisk >= self::LOW_RISK) {
+                    $product->setIngredientsMatchingRisk(null);
                 } else {
-                    $product->setIngredientsMatchingRisk(
-                        $matchingRisk >= self::LOW_RISK ? null : true
-                    );
+                    $product->setIngredientsMatchingRisk($matchingRisk > self::MEDIUM_RISK);
                 }
             }
         } catch (\Exception $e) {
@@ -148,14 +156,17 @@ class Analyzer
      */
     private function findNotableEffectAndIngredients(Product $product, Document $html)
     {
-        $notableEffectsAndIngredients = [];
+        if ($product->getNotableEffectsAndIngredients()) {
+            return;
+        }
 
+        $notableEffectsAndIngredients = [];
         try {
             $nodeWithNotableEffectAndIngredients = $html->find('.py-2.pr-2.pl-0');
             foreach ($nodeWithNotableEffectAndIngredients as $node) {
                 $notableIngredients = [];
                 $parentNode = $node->parent();
-                if (($effect = $parentNode->find('span')) !== []) {
+                if ($parentNode && ($effect = $parentNode->find('span')) !== []) {
                     foreach ($parentNode->nextSiblings()[1]->find('.badge.badge-text.p-2.mb-1.mr-1') as $item) {
                         $notableIngredients[] = trim($item->text());
                     }
@@ -178,14 +189,17 @@ class Analyzer
      */
     private function findIngredientsRelatedToSkinTypes(Product $product, Document $html)
     {
+        if ($product->getDrySkin() || $product->getOilySkin() || $product->getSensitiveSkin()) {
+            return;
+        }
+
         $relatedList = [];
         try {
             $nodeWithRelatedIngredients = $html->find('h3[class=font-080]')[2]->parent();
             $divsWithDataTag = $nodeWithRelatedIngredients->find('div.row');
 
+            $i = 0;
             foreach ($divsWithDataTag as $node) {
-                $i = 0;
-
                 $hideHtml = new Document($node->getAttribute('data-original-title'));
 
                 $listOfIngredients = $hideHtml->find('small');
@@ -205,6 +219,17 @@ class Analyzer
         } catch (\Exception $e) {
             dump($e->getMessage());
         }
+
+        foreach ($relatedList as &$item) {
+            if (array_key_exists('Good', $item) && $item['Good'] === []) {
+                unset($item['Good']);
+            }
+            if (array_key_exists('Bad', $item) && $item['Bad'] === []) {
+                unset($item['Bad']);
+            }
+        }
+
+        unset($item);
 
         if ($relatedList !== []) {
             dump($relatedList);
