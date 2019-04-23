@@ -79,6 +79,27 @@ class Product
     private $ingredientsRelatedToSkinTypes;
 
     /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $drySkin;
+
+    /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $oilySkin;
+
+    /**
+     * @var array
+     *
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $sensitiveSkin;
+
+    /**
      * @return int|null
      */
     public function getId(): ?int
@@ -226,6 +247,66 @@ class Product
     public function setIngredientsRelatedToSkinTypes($ingredientsRelatedToSkinTypes): self
     {
         $this->ingredientsRelatedToSkinTypes = $ingredientsRelatedToSkinTypes;
+
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getDrySkin(): ?array
+    {
+        return $this->drySkin;
+    }
+
+    /**
+     * @param $drySkin
+     *
+     * @return Product
+     */
+    public function setDrySkin($drySkin): self
+    {
+        $this->drySkin = $drySkin;
+
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getOilySkin(): ?array
+    {
+        return $this->oilySkin;
+    }
+
+    /**
+     * @param $oilySkin
+     *
+     * @return Product
+     */
+    public function setOilySkin($oilySkin): self
+    {
+        $this->oilySkin = $oilySkin;
+
+        return $this;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getSensitiveSkin(): ?array
+    {
+        return $this->sensitiveSkin;
+    }
+
+    /**
+     * @param $sensitiveSkin
+     *
+     * @return Product
+     */
+    public function setSensitiveSkin($sensitiveSkin): self
+    {
+        $this->sensitiveSkin = $sensitiveSkin;
 
         return $this;
     }

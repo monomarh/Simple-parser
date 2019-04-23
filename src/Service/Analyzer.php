@@ -75,8 +75,8 @@ class Analyzer
             $this->findIngredientsRelatedToSkinTypes($product, $html);
 
             $this->entityManager->persist($product);
+            $this->entityManager->flush();
         }
-        $this->entityManager->flush();
 
         return 1;
     }
@@ -184,7 +184,7 @@ class Analyzer
             $divsWithDataTag = $nodeWithRelatedIngredients->find('div.row');
 
             foreach ($divsWithDataTag as $node) {
-                $skinType = $node->find('i')[0]->firstChild()->text();
+                $i = 0;
 
                 $hideHtml = new Document($node->getAttribute('data-original-title'));
 
@@ -200,14 +200,17 @@ class Analyzer
                     $badList[] = $ingredientName->text();
                 }
 
-                $relatedList[$skinType] = ['Good' => $goodList, 'Bad' => $badList];
+                $relatedList[$i++] = ['Good' => $goodList, 'Bad' => $badList];
             }
         } catch (\Exception $e) {
             dump($e->getMessage());
         }
 
         if ($relatedList !== []) {
-            $product->setIngredientsRelatedToSkinTypes($relatedList);
+            dump($relatedList);
+            $product->setDrySkin($relatedList[0] ?? null);
+            $product->setOilySkin($relatedList[1] ?? null);
+            $product->setSensitiveSkin($relatedList[2] ?? null);
         }
     }
 }
