@@ -88,7 +88,7 @@ class MainController extends AbstractController
     /**
      * @return Response
      */
-    public function Analyze(): Response
+    public function analyze(): Response
     {
         $this->analyzer->analyze();
 

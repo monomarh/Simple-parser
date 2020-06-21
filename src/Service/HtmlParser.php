@@ -23,11 +23,11 @@ class HtmlParser
      * @var array
      */
     const URLS_WITH_PRODUCTS = [
-//        'https://shop.cravt.by/ukhod-11439-s' => 406,
-//        'https://shop.cravt.by/ochishchenie-11448-s' => 171,
-//        'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
-//        'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
-//        'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
+        'https://shop.cravt.by/ukhod-11439-s' => 406,
+        'https://shop.cravt.by/ochishchenie-11448-s' => 171,
+        'https://shop.cravt.by/maski_dlya_litsa-11453-s' => 53,
+        'https://shop.cravt.by/ukhod_dlya_glaz-11454-s' => 91,
+        'https://shop.cravt.by/ukhod_dlya_gub-11459-s' => 12
     ];
 
     /**
@@ -72,7 +72,6 @@ class HtmlParser
         for ($pageNumber = 0; $pageNumber < $pagination; $pageNumber++) {
             $requiredFieldsFromHtml = [];
 
-            /** @var Document $html */
             $html = new Document(
                 $this->sendRequestAndReturnResponse(
                     $url,
@@ -163,8 +162,6 @@ class HtmlParser
         } catch (\Exception $e) {
             sleep(2);
         }
-
-        dump($urlWithGetOptions);
 
         $load = Curl::getPage([
             'url' 	  => $urlWithGetOptions,
